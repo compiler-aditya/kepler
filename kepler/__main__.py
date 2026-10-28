@@ -196,10 +196,16 @@ def cmd_track(a) -> None:
         roi = None
         if a.sheet == "sam" or (a.sheet == "auto" and a.tracker == "sam"):
             from . import sam
-            srec = sam.segment_image(frame0, a.sheet_prompt, raw_log=out / "sam_sheet_raw.txt")
-            if srec:
-                b = max(srec, key=lambda r: r.box.width * r.box.height).box
-                roi = (b.x1, b.y1, b.x2, b.y2)
+            # SAM takes one concept per request, and which phrase finds a sheet varies by scene
+            # ("white paper sheet" found nothing on the synthetic clip; "sheet of paper" did).
+            prompts = [p.strip() for p in a.sheet_prompt.split(",") if p.strip()]
+            for prompt in prompts:
+                srec = sam.segment_image(frame0, prompt, raw_log=out / "sam_sheet_raw.txt")
+                if srec:
+                    b = max(srec, key=lambda r: r.box.width * r.box.height).box
+                    roi = (b.x1, b.y1, b.x2, b.y2)
+                    print(f"SAM found the sheet as {prompt!r}")
+                    break
             else:
                 print("SAM found no sheet; falling back to brightness detection on the whole frame")
         corners = sheet.detect_corners(frame0, roi)
@@ -274,7 +280,8 @@ def main(argv=None) -> None:
     s.add_argument("--box-frame", type=int, default=0)
     s.add_argument("--color", default="red", help="colour tracker: red/orange/yellow/green/blue or #rrggbb")
     s.add_argument("--sheet", default="auto", help="auto | sam | 8 numbers: tl,tr,br,bl corners in pixels")
-    s.add_argument("--sheet-prompt", default="white paper sheet")
+    s.add_argument("--sheet-prompt", default="sheet of paper,white paper,white rectangle",
+                   help="SAM phrases for the sheet, comma-separated, tried in order")
     s.add_argument("--sheet-frame", type=int, default=0)
     s.add_argument("--capture-fps", type=float, help="true capture rate if the file is re-timed (e.g. 240)")
     s.add_argument("--fall", help="START,END seconds of the free fall, if auto-detection picks wrong")

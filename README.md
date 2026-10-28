@@ -80,7 +80,9 @@ python -m kepler plan exp/rails --cup-px 812,640 --rim-diameter 70
 ## Notes
 
 - **Cost:** SAM 3.1 video is $0.20 per 1,000 frames, minimum 50 frames per request. A 4 s clip at 240 fps is about $0.19.
-- **Positions** come from SAM's box centres (accurate to about half a pixel for a ball). Mask centroids via Meta's `meta-sam-parser` are the planned upgrade.
+- **Positions** come from SAM's box centres. On the synthetic ramp clip they agree with the colour tracker to 0.46 px RMS (1.0 px max). Mask centroids via Meta's `meta-sam-parser` are the planned upgrade.
+- **Start of the clip:** SAM's concept tracking began at frame 5 on the synthetic clip (it returns nothing for the first few). Film half a second of the ball at rest before release; the release detection needs it anyway.
+- **Finding the sheet:** SAM tries the phrases in `--sheet-prompt` in order ("sheet of paper", then "white paper", then "white rectangle"), then falls back to brightness detection.
 - **Offline testing:** `--tracker color --color red` tracks a coloured ball without the API. `python -m kepler synth` renders a test clip with known g.
 
 ## Layout
