@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+runs/
+clips/
+synth/
+*.fileid.json
+*.MOV
+*.mov
+*.mp4
+exp/
+.DS_Store
